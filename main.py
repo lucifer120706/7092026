@@ -21,7 +21,7 @@ import pipeline
 import config
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_CSV = os.path.join(APP_DIR, "data", "sample_materials.csv")
+DEFAULT_CSV = os.path.join(APP_DIR,"sample_materials.csv")
 
 app = FastAPI(title="OneCode AI - Material Standardization & Harmonization Platform", version="2.0")
 
