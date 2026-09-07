@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneCode AI — Material Standardization &amp; Harmonization Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12293C; --sidebar:#0E2130; --steel:#1F4E63; --teal:#146B63; --teal-bg:#E6F1EF;
+    --amber:#9A6112; --amber-bg:#FBF0DD; --red:#8F3226; --red-bg:#F8E9E5; --blue:#265E85; --blue-bg:#E4EEF6;
+    --purple:#5B4A82; --purple-bg:#EEEBF3; --slate:#4C616A; --paper:#EDF0EE; --panel:#FFFFFF; --line:#D7DED9;
+    --mono:'IBM Plex Mono', monospace; --sans:'IBM Plex Sans', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:var(--sans); background:var(--paper); color:var(--ink); -webkit-font-smoothing:antialiased;}
+  a{color:inherit;}
+  .app{display:flex; min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{
+    width:236px; flex-shrink:0; background:var(--sidebar); color:#D9E4E2;
+    display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:22px 20px 16px; border-bottom:1px solid rgba(255,255,255,0.08);}
+  .brand-name{font-size:17px; font-weight:700; color:#EAF2F1; letter-spacing:-0.01em;}
+  .brand-sub{font-size:10.5px; color:#8FAFAA; margin-top:3px; line-height:1.4;}
+  .nav{padding:10px 10px; flex:1;}
+  .nav-item{
+    display:flex; align-items:center; gap:9px; padding:9px 11px; border-radius:5px; font-size:13px;
+    font-weight:500; color:#B9CDC9; cursor:pointer; margin-bottom:2px; transition:background .1s ease;
+  }
+  .nav-item:hover{background:rgba(255,255,255,0.06);}
+  .nav-item.active{background:var(--teal); color:#fff;}
+  .nav-num{font-family:var(--mono); font-size:10px; color:#6E8B86; width:16px;}
+  .nav-item.active .nav-num{color:#CFE9E4;}
+  .sidebar-footer{padding:14px 20px; border-top:1px solid rgba(255,255,255,0.08); font-size:10.5px; color:#6E8B86; line-height:1.5;}
+
+  /* Main */
+  .main{flex:1; min-width:0;}
+  .topbar{
+    background:var(--panel); border-bottom:1px solid var(--line); padding:14px 28px;
+    display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .topbar-title{font-size:16px; font-weight:600;}
+  .topbar-sub{font-size:12px; color:var(--slate); margin-top:2px;}
+  .topbar-right{display:flex; align-items:center; gap:10px; font-size:11.5px; color:var(--slate);}
+  .source-pill{
+    font-family:var(--mono); font-size:10.5px; padding:4px 10px; border-radius:20px;
+    background:var(--teal-bg); color:var(--teal); font-weight:600;
+  }
+  .content{padding:24px 28px 60px; max-width:1200px;}
+
+  /* Shared components */
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:18px 20px;}
+  .section-title{font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--slate); margin:0 0 12px; display:flex; align-items:center; gap:8px;}
+  .section-title::after{content:""; flex:1; height:1px; background:var(--line);}
+  .grid-4{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+  .grid-2{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+  @media (max-width: 900px){ .grid-4{grid-template-columns:repeat(2,1fr);} .grid-3{grid-template-columns:repeat(2,1fr);} }
+
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px 16px;}
+  .stat .num{font-family:var(--mono); font-size:22px; font-weight:600;}
+  .stat .lbl{font-size:11px; color:var(--slate); margin-top:3px; line-height:1.35;}
+  .stat.warn .num{color:var(--amber);} .stat.good .num{color:var(--teal);} .stat.bad .num{color:var(--red);}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--slate); padding:8px 10px; border-bottom:1px solid var(--line); font-weight:600;}
+  td{padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:#F7F9F8;}
+  .mono{font-family:var(--mono); font-size:12px;}
+
+  .badge{font-family:var(--mono); font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:3px; display:inline-block; white-space:nowrap;}
+  .badge-duplicate{background:var(--teal-bg); color:var(--teal);}
+  .badge-equivalent{background:var(--blue-bg); color:var(--blue);}
+  .badge-similar{background:var(--amber-bg); color:var(--amber);}
+  .badge-nomatch{background:var(--red-bg); color:var(--red);}
+  .badge-insufficient{background:var(--purple-bg); color:var(--purple);}
+  .badge-approved{background:var(--teal-bg); color:var(--teal);}
+  .badge-pending{background:var(--amber-bg); color:var(--amber);}
+  .badge-rejected{background:var(--red-bg); color:var(--red);}
+
+  input[type=text], input[type=search], select{
+    font-family:var(--sans); font-size:13px; padding:8px 11px; border:1px solid var(--line);
+    border-radius:5px; background:var(--panel); color:var(--ink);
+  }
+  input[type=file]{font-family:var(--sans); font-size:13px;}
+  button{
+    font-family:var(--sans); font-size:13px; font-weight:600; padding:8px 16px; border-radius:5px;
+    border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer;
+  }
+  button.secondary{background:var(--panel); color:var(--ink); border:1px solid var(--line);}
+  button.danger{background:var(--red); border-color:var(--red);}
+  button.small{padding:5px 11px; font-size:12px;}
+  button:disabled{opacity:0.5; cursor:not-allowed;}
+
+  .tabs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+  .tab{font-size:12.5px; font-weight:500; padding:6px 12px; border-radius:20px; border:1px solid var(--line); background:var(--panel); color:var(--slate); cursor:pointer;}
+  .tab.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+  .empty{color:var(--slate); font-size:13px; padding:20px; text-align:center;}
+  .loading{color:var(--slate); font-size:13px; padding:20px; text-align:center; font-family:var(--mono);}
+  .error-box{background:var(--red-bg); color:var(--red); border-radius:6px; padding:12px 16px; font-size:13px; margin-bottom:14px;}
+  .note{font-size:11.5px; color:var(--slate); line-height:1.5; margin-top:8px;}
+  .demo-tag{font-family:var(--mono); font-size:9.5px; background:var(--amber-bg); color:var(--amber); padding:2px 7px; border-radius:3px; font-weight:600;}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(18,41,60,0.55); display:flex; align-items:flex-start; justify-content:center; padding:40px 20px; overflow-y:auto; z-index:100;}
+  .modal{background:var(--panel); border-radius:8px; max-width:820px; width:100%; padding:26px 28px; margin-bottom:40px;}
+  .modal-close{float:right; cursor:pointer; font-size:20px; color:var(--slate); line-height:1;}
+
+  .onecode-hero{background:linear-gradient(135deg, var(--ink), var(--steel)); color:#EAF2F1; border-radius:8px; padding:20px 24px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
+  .onecode-hero .oc{font-family:var(--mono); font-size:22px; font-weight:600;}
+  .onecode-hero .oc-lbl{font-size:10.5px; letter-spacing:0.05em; color:#9FC3BD;}
+  .onecode-hero .oc-count{font-size:13px; color:#C4D6D2;}
+
+  .flex-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .field-group{display:flex; flex-direction:column; gap:4px;}
+  .field-group label{font-size:11px; color:var(--slate); font-weight:600;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-name">ONECODE AI</div>
+      <div class="brand-sub">Different Codes. One Material. OneCode.<br>AI-Driven Material Standardization &amp; Harmonization Platform</div>
+    </div>
+    <div class="nav" id="navList"></div>
+    <div class="sidebar-footer" id="sidebarFooter">Backend: not connected</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="pageTitle">Overview</div>
+        <div class="topbar-sub" id="pageSubtitle">National Material Intelligence</div>
+      </div>
+      <div class="topbar-right">
+        <span>Data source:</span>
+        <span class="source-pill" id="sourcePill">—</span>
+      </div>
+    </div>
+    <div class="content" id="content">
+      <div class="loading">Connecting to backend…</div>
+    </div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+// Set your deployed backend URL here, or append ?api=https://your-backend-url
+// to this page's URL (no browser storage is used, so this is the persistent
+// way to point the dashboard at your live API without editing the file).
+const DEFAULT_API_BASE = "http://localhost:8000";
+const API_BASE = new URLSearchParams(window.location.search).get('api') || DEFAULT_API_BASE;
+
+async function api(path, opts) {
+  const res = await fetch(API_BASE + path, opts);
+  if (!res.ok) {
+    let detail = res.statusText;
+    try { const j = await res.json(); detail = j.detail || detail; } catch(e){}
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
+function el(html){ const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
+function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+const DECISION_BADGE = {
+  "Duplicate": "badge-duplicate", "Equivalent": "badge-equivalent", "Similar": "badge-similar",
+  "No Match": "badge-nomatch", "Insufficient Data": "badge-insufficient",
+};
+const STATUS_BADGE = { "Approved": "badge-approved", "Pending": "badge-pending", "Rejected": "badge-rejected" };
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+const NAV_ITEMS = [
+  {id:"overview", label:"Overview"},
+  {id:"explorer", label:"Material Explorer"},
+  {id:"lookup", label:"Code Lookup"},
+  {id:"matching", label:"AI Matching"},
+  {id:"duplicates", label:"Duplicate Detection"},
+  {id:"onecode-master", label:"OneCode Master"},
+  {id:"mapping", label:"CPSE Mapping"},
+  {id:"onboarding", label:"Data Onboarding"},
+  {id:"procurement", label:"Procurement Insights"},
+  {id:"quality", label:"Data Quality"},
+  {id:"review", label:"Review & Approval"},
+  {id:"audit", label:"Audit Trail"},
+  {id:"integration", label:"System Integration"},
+];
+
+let currentTab = "overview";
+
+function renderNav(){
+  const nav = document.getElementById('navList');
+  nav.innerHTML = "";
+  NAV_ITEMS.forEach((item, i) => {
+    const node = el(`<div class="nav-item ${item.id===currentTab?'active':''}"><span class="nav-num">${String(i+1).padStart(2,'0')}</span><span>${item.label}</span></div>`);
+    node.addEventListener('click', () => switchTab(item.id));
+    nav.appendChild(node);
+  });
+}
+
+function switchTab(id){
+  currentTab = id;
+  renderNav();
+  loadTab(id);
+}
+
+async function loadTab(id){
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="loading">Loading…</div>';
+  const item = NAV_ITEMS.find(n => n.id === id);
+  document.getElementById('pageTitle').textContent = item.label;
+  try {
+    const renderer = TAB_RENDERERS[id];
+    if (renderer) await renderer(content);
+  } catch (e) {
+    content.innerHTML = `<div class="error-box">Could not load this section: ${esc(e.message)}. Confirm the backend URL is correct (currently <span class="mono">${esc(API_BASE)}</span>) and reachable — append <span class="mono">?api=https://your-backend-url</span> to this page's address if needed.</div>`;
+  }
+}
+
+async function refreshTopbar(){
+  try {
+    const stats = await api('/dashboard-stats');
+    document.getElementById('sourcePill').textContent = stats.current_source;
+    document.getElementById('sidebarFooter').textContent = `Backend: ${API_BASE.replace(/^https?:\/\//,'')} · ${stats.semantic_method}`;
+    return stats;
+  } catch (e) {
+    document.getElementById('sourcePill').textContent = 'disconnected';
+    document.getElementById('sidebarFooter').textContent = 'Backend: not reachable';
+    throw e;
+  }
+}
+
+const TAB_RENDERERS = {}; // filled in below by each section's script
+
+window.addEventListener('DOMContentLoaded', async () => {
+  renderNav();
+  try {
+    await refreshTopbar();
+  } catch(e) { /* still try to render the tab; it'll show its own error */ }
+  loadTab(currentTab);
+});
+</script>
+<!-- TAB_SCRIPTS_PLACEHOLDER -->
+<script>
+// ============================================================
+// DATA QUALITY
+// ============================================================
+TAB_RENDERERS.quality = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Completeness and consistency of ingested material records';
+  const q = await api('/data-quality');
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <p class="section-title">Overall Data Quality</p>
+      <div class="stat ${q.overall_score>=90?'good':(q.overall_score>=70?'warn':'bad')}" style="max-width:220px;"><div class="num">${q.overall_score}/100</div><div class="lbl">Weighted across all CPSEs</div></div>
+    </div>
+    <div class="card">
+      <p class="section-title">By CPSE</p>
+      <table><thead><tr><th>CPSE</th><th>Records</th><th>Score</th><th>Issues</th></tr></thead>
+        <tbody>${Object.entries(q.by_cpse).map(([cpse,d]) => `<tr>
+          <td>${esc(cpse)}</td><td class="mono">${d.records}</td>
+          <td><span class="badge ${d.score>=90?'badge-approved':(d.score>=70?'badge-pending':'badge-rejected')}">${d.score}/100</span></td>
+          <td style="font-size:12px;color:var(--slate);">${Object.keys(d.issues).length ? Object.entries(d.issues).map(([k,v])=>`${k.replace(/_/g,' ')}: ${v}`).join(', ') : 'None'}</td>
+        </tr>`).join('')}</tbody></table>
+    </div>
+  `;
+};
+
+// ============================================================
+// REVIEW & APPROVAL
+// ============================================================
+TAB_RENDERERS.review = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'AI recommendations awaiting human validation';
+  content.innerHTML = `<div id="reviewWrap" class="loading">Loading…</div>`;
+  await loadReviewQueue();
+};
+
+async function loadReviewQueue(){
+  const wrap = document.getElementById('reviewWrap');
+  wrap.innerHTML = '<div class="loading">Loading…</div>';
+  const data = await api('/review-queue');
+  if (data.count === 0) { wrap.innerHTML = '<div class="empty">Nothing pending review.</div>'; return; }
+  wrap.innerHTML = data.queue.map(r => `
+    <div class="card" style="margin-bottom:10px;">
+      <div class="flex-row" style="justify-content:space-between;">
+        <div><span class="badge ${DECISION_BADGE[r.decision]||''}">${esc(r.decision)}</span> <span style="font-size:11.5px;color:var(--slate);">${esc(r.category)} · confidence ${(r.combined_score*100).toFixed(0)}%</span></div>
+        <span style="font-size:11px;color:var(--slate);">${esc(r.current_status||'pending_human_review')}</span>
+      </div>
+      <p style="margin:8px 0 4px;font-size:13.5px;"><b>${esc(r.pair[0])}</b>: ${esc(r.descriptions[0])}<br><b>${esc(r.pair[1])}</b>: ${esc(r.descriptions[1])}</p>
+      <p style="font-size:12px;color:var(--slate);margin:0 0 10px;">${esc(r.evidence)}</p>
+      <div class="flex-row">
+        <button class="small" onclick="reviewAction('${esc(r.pair[0])}','${esc(r.pair[1])}','approve')">Approve</button>
+        <button class="small danger" onclick="reviewAction('${esc(r.pair[0])}','${esc(r.pair[1])}','reject')">Reject</button>
+        <button class="small secondary" onclick="reviewAction('${esc(r.pair[0])}','${esc(r.pair[1])}','modify')">Modify</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function reviewAction(a, b, action){
+  await api('/review', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({pair:[a,b], action, reviewer:'demo_user'}) });
+  loadReviewQueue();
+}
+
+// ============================================================
+// AUDIT TRAIL
+// ============================================================
+TAB_RENDERERS.audit = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Every proposed and reviewed change, with full history';
+  const data = await api('/audit');
+  content.innerHTML = `
+    <div class="card">
+      ${data.count === 0 ? '<div class="empty">No audit entries yet.</div>' : `
+      <table><thead><tr><th>Timestamp</th><th>Materials</th><th>Action</th><th>Reviewer</th><th>Status</th></tr></thead>
+        <tbody>${data.audit_log.map(a => `<tr>
+          <td style="font-size:11.5px;color:var(--slate);">${esc((a.timestamp||'').replace('T',' ').split('.')[0])}</td>
+          <td class="mono">${(a.materials||[]).join(' ↔ ')}</td>
+          <td>${esc(a.action||a.decision||'')}</td>
+          <td>${esc(a.reviewer||'system')}</td>
+          <td><span class="badge ${a.status==='reversible'?'badge-approved':'badge-pending'}">${esc(a.status||'')}</span></td>
+        </tr>`).join('')}</tbody></table>`}
+      <p class="note">${data.count} entries. Every action is reversible and timestamped.</p>
+    </div>
+  `;
+};
+
+// ============================================================
+// SYSTEM INTEGRATION
+// ============================================================
+TAB_RENDERERS.integration = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Data source architecture and ingestion capability';
+  const [sys, sources, cpses] = await Promise.all([api('/system-integration'), api('/onboarding/sources'), api('/config/cpses')]);
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <p class="section-title">Current Data Source</p>
+      <p><span class="source-pill">${esc(sys.current_data_source)}</span></p>
+      <p class="note" style="margin-top:10px;">${esc(sys.note)}</p>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <p class="section-title">Available Ingestion Methods</p>
+      <table><thead><tr><th>Source</th><th>Status</th></tr></thead>
+        <tbody>${sources.supported_sources.map(s => `<tr><td>${esc(s.type)}</td><td>${esc(s.status)}</td></tr>`).join('')}</tbody></table>
+    </div>
+    <div class="card">
+      <p class="section-title">Configured CPSEs</p>
+      <p>${cpses.cpses.map(c => `<span class="badge badge-duplicate" style="margin:2px;">${esc(c)}</span>`).join(' ')}</p>
+      <p class="note">CPSE list is configurable (see backend <span class="mono">config.py</span>), not hard-coded into the matching engine.</p>
+    </div>
+  `;
+};
+</script>
+
+<script>
+// ============================================================
+// CPSE MAPPING (legacy code mapping)
+// ============================================================
+TAB_RENDERERS.mapping = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Legacy CPSE code → OneCode mapping table';
+  const cpses = await api('/config/cpses');
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <div class="flex-row">
+        <div class="field-group"><label>CPSE</label><select id="mapCpse"><option value="">All</option>${cpses.cpses.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></div>
+        <div class="field-group"><label>Status</label><select id="mapStatus"><option value="">All</option><option>Approved</option><option>Pending</option><option>Rejected</option></select></div>
+        <div class="field-group"><label>&nbsp;</label><button id="mapGo">Filter</button></div>
+        <div class="field-group"><label>&nbsp;</label><button class="secondary" id="mapExport">Export CSV</button></div>
+      </div>
+    </div>
+    <div class="card"><div id="mapWrap" class="loading">Loading…</div></div>
+  `;
+  let lastRows = [];
+  async function loadMapping(){
+    const cpse = document.getElementById('mapCpse').value;
+    const status = document.getElementById('mapStatus').value;
+    const params = new URLSearchParams();
+    if (cpse) params.set('cpse', cpse);
+    if (status) params.set('status', status);
+    const data = await api('/mapping?' + params.toString());
+    lastRows = data.mapping;
+    const wrap = document.getElementById('mapWrap');
+    if (data.count === 0) { wrap.innerHTML = '<div class="empty">No mappings match this filter.</div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>CPSE</th><th>Existing Code</th><th>OneCode</th><th>Status</th></tr></thead>
+      <tbody>${data.mapping.map(r => `<tr><td>${esc(r.cpse)}</td><td class="mono">${esc(r.existing_code)}</td><td class="mono">${esc(r.onecode)}</td><td><span class="badge ${STATUS_BADGE[r.status]||'badge-pending'}">${esc(r.status)}</span></td></tr>`).join('')}</tbody></table><p class="note">${data.count} mapping(s).</p>`;
+  }
+  document.getElementById('mapGo').addEventListener('click', loadMapping);
+  document.getElementById('mapExport').addEventListener('click', () => {
+    const csv = "CPSE,Existing Code,OneCode,Status\n" + lastRows.map(r => `${r.cpse},${r.existing_code},${r.onecode},${r.status}`).join("\n");
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'onecode_mapping.csv'; a.click();
+  });
+  loadMapping();
+};
+
+// ============================================================
+// PROCUREMENT INSIGHTS
+// ============================================================
+TAB_RENDERERS.procurement = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Aggregated cross-CPSE demand and procurement opportunities';
+  const data = await api('/procurement-insights');
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <p class="section-title">Total Estimated Opportunity <span class="demo-tag">ILLUSTRATIVE DEMO ESTIMATE</span></p>
+      <div class="stat good" style="max-width:260px;"><div class="num">₹${data.total_estimated_savings_inr.toLocaleString('en-IN')}</div><div class="lbl">across ${data.clusters.length} harmonized material(s) with 2+ CPSEs</div></div>
+    </div>
+    <div class="card">
+      <p class="section-title">Combined Demand by OneCode</p>
+      ${data.clusters.length === 0 ? '<div class="empty">No multi-CPSE clusters with pricing data yet.</div>' : `
+      <table><thead><tr><th>OneCode</th><th>CPSEs Involved</th><th>Combined Demand</th><th>Price Range</th><th>Est. Opportunity</th></tr></thead>
+        <tbody>${data.clusters.map(c => `<tr>
+          <td class="mono">${esc(c.onecode)}</td><td>${c.cpses_involved.join(', ')}</td><td>${c.combined_demand}</td>
+          <td>₹${c.price_range[0]} – ₹${c.price_range[1]}</td><td class="mono">₹${c.estimated_savings_inr.toLocaleString('en-IN')}</td>
+        </tr>`).join('')}</tbody></table>
+        <p class="note">${data.clusters[0]?.note || ''}</p>`}
+    </div>
+  `;
+};
+
+// ============================================================
+// DATA ONBOARDING
+// ============================================================
+TAB_RENDERERS.onboarding = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Ingest CPSE material data from CSV, Excel, JSON, or SAP/ERP export';
+  const sources = await api('/onboarding/sources');
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <p class="section-title">Supported Data Sources</p>
+      <table><thead><tr><th>Source</th><th>Status</th></tr></thead>
+        <tbody>${sources.supported_sources.map(s => `<tr><td>${esc(s.type)}</td><td>${esc(s.status)}</td></tr>`).join('')}</tbody></table>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <p class="section-title">Upload a File</p>
+      <p class="note" style="margin-top:0;">Accepts CSV, Excel (.xlsx/.xls), or JSON. Columns are auto-detected against known field names (including common SAP export codes like MATNR, MAKTX) — you can review and adjust the mapping before ingesting.</p>
+      <input type="file" id="obFile" accept=".csv,.xlsx,.xls,.json"> &nbsp;
+      <button id="obDetect">Detect Columns</button>
+      <div id="obMappingWrap"></div>
+    </div>
+    <div class="card">
+      <p class="section-title">Reset</p>
+      <p class="note" style="margin-top:0;">Return to the bundled synthetic demo dataset at any time.</p>
+      <button class="secondary" id="obReset">Reload Demo Dataset</button>
+      <span id="obResetMsg" style="margin-left:10px;font-size:12.5px;color:var(--teal);"></span>
+    </div>
+  `;
+
+  document.getElementById('obDetect').addEventListener('click', async () => {
+    const fileInput = document.getElementById('obFile');
+    const wrap = document.getElementById('obMappingWrap');
+    if (!fileInput.files.length) { wrap.innerHTML = '<div class="error-box">Choose a file first.</div>'; return; }
+    wrap.innerHTML = '<div class="loading">Detecting columns…</div>';
+    const fd = new FormData();
+    fd.append('file', fileInput.files[0]);
+    try {
+      const data = await api('/onboarding/detect-columns', { method: 'POST', body: fd });
+      const fieldOptions = ["material_code","raw_description","category","material","dimension_1","unit","standard","grade","pressure_rating","voltage_rating","manufacturer","manufacturer_part_number","cpse_id","unit_price","quantity_procured"];
+      wrap.innerHTML = `
+        <p style="margin:14px 0 8px;font-size:13px;"><b>${data.rows_detected}</b> rows detected in <span class="mono">${esc(data.filename)}</span>.</p>
+        ${data.missing_required_fields.length ? `<div class="error-box">Missing required field(s): ${data.missing_required_fields.join(', ')}. Adjust the mapping below.</div>` : ''}
+        <table><thead><tr><th>Source Column</th><th>Maps To</th><th>Confidence</th></tr></thead>
+          <tbody>${data.suggested_mapping.map((m,i) => `<tr>
+            <td class="mono">${esc(m.source_column)}</td>
+            <td><select data-idx="${i}" class="obMapSelect"><option value="">— ignore —</option>${fieldOptions.map(f=>`<option value="${f}" ${f===m.target_field?'selected':''}>${f}</option>`).join('')}</select></td>
+            <td class="mono">${m.confidence ? m.confidence + '%' : '—'}</td>
+          </tr>`).join('')}</tbody></table>
+        <div class="field-group" style="margin:12px 0;"><label>Source label (for the audit trail)</label><input type="text" id="obSourceLabel" placeholder="e.g. CPCL SAP Export" value="Uploaded: ${esc(data.filename)}"></div>
+        <button id="obIngest">Run AI Harmonization on This File</button>
+        <span id="obIngestMsg" style="margin-left:10px;font-size:12.5px;"></span>
+      `;
+      document.getElementById('obIngest').addEventListener('click', async () => {
+        const mapping = data.suggested_mapping.map((m,i) => {
+          const sel = document.querySelector(`.obMapSelect[data-idx="${i}"]`);
+          return { source_column: m.source_column, target_field: sel.value || null, confidence: m.confidence };
+        });
+        const fd2 = new FormData();
+        fd2.append('file', fileInput.files[0]);
+        fd2.append('mapping_json', JSON.stringify(mapping));
+        fd2.append('source_label', document.getElementById('obSourceLabel').value);
+        const msg = document.getElementById('obIngestMsg');
+        msg.textContent = 'Running pipeline…'; msg.style.color = 'var(--slate)';
+        try {
+          const result = await api('/onboarding/ingest', { method: 'POST', body: fd2 });
+          msg.textContent = `Done — ${result.total_records} records ingested, ${result.onecodes_generated} OneCodes generated.`;
+          msg.style.color = 'var(--teal)';
+          refreshTopbar();
+        } catch (e) {
+          msg.textContent = e.message; msg.style.color = 'var(--red)';
+        }
+      });
+    } catch (e) {
+      wrap.innerHTML = `<div class="error-box">${esc(e.message)}</div>`;
+    }
+  });
+
+  document.getElementById('obReset').addEventListener('click', async () => {
+    await api('/onboarding/reset-demo', { method: 'POST' });
+    document.getElementById('obResetMsg').textContent = 'Reloaded demo dataset.';
+    refreshTopbar();
+  });
+};
+</script>
+
+<script>
+// ============================================================
+// AI MATCHING
+// ============================================================
+TAB_RENDERERS.matching = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Pairwise match results with explainable evidence';
+  content.innerHTML = `<div class="card"><div class="tabs" id="matchTabs"></div><div id="matchTableWrap" class="loading">Loading…</div></div>`;
+  const decisions = ["All", "Duplicate", "Equivalent", "Similar", "No Match", "Insufficient Data"];
+  let active = "All";
+  const tabsEl = document.getElementById('matchTabs');
+  const stats = await api('/dashboard-stats');
+  decisions.forEach(dec => {
+    const count = dec === "All" ? Object.values(stats.decision_breakdown).reduce((a,b)=>a+b,0) : (stats.decision_breakdown[dec]||0);
+    const t = el(`<button class="tab ${dec===active?'active':''}">${dec} (${count})</button>`);
+    t.addEventListener('click', () => { active = dec; document.querySelectorAll('#matchTabs .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); loadMatches(); });
+    tabsEl.appendChild(t);
+  });
+
+  async function loadMatches(){
+    const wrap = document.getElementById('matchTableWrap');
+    wrap.innerHTML = '<div class="loading">Loading…</div>';
+    const params = active === "All" ? "" : `?decision=${encodeURIComponent(active)}`;
+    const data = await api('/results' + params);
+    if (data.count === 0) { wrap.innerHTML = '<div class="empty">No pairs in this category.</div>'; return; }
+    wrap.innerHTML = data.results.map((r,i) => `
+      <div class="card" style="margin-bottom:10px;">
+        <div class="flex-row" style="justify-content:space-between;">
+          <div><span class="badge ${DECISION_BADGE[r.decision]||''}">${esc(r.decision)}</span> <span style="font-size:11.5px;color:var(--slate);">${esc(r.category)} · ${esc(r.cpse_pair[0])} vs ${esc(r.cpse_pair[1])}</span></div>
+          <div class="mono" style="font-size:12px;">score ${r.combined_score.toFixed(2)}</div>
+        </div>
+        <p style="margin:8px 0 6px;font-size:13.5px;">${esc(r.descriptions[0])} <span style="color:var(--slate);">vs</span> ${esc(r.descriptions[1])}</p>
+        <p style="font-size:12px;color:var(--slate);margin:0 0 8px;">${esc(r.evidence)}</p>
+        <table><tbody>${r.evidence_table.map(e=>`<tr><td style="width:180px;font-size:11.5px;color:var(--slate);">${esc(e.feature)}</td><td>${esc(e.result)}</td></tr>`).join('')}</tbody></table>
+      </div>
+    `).join('');
+  }
+  loadMatches();
+};
+
+// ============================================================
+// DUPLICATE DETECTION
+// ============================================================
+TAB_RENDERERS.duplicates = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Confirmed duplicates and equivalents, ready for OneCode assignment';
+  content.innerHTML = `<div class="card"><div id="dupWrap" class="loading">Loading…</div></div>`;
+  const data = await api('/duplicates');
+  const wrap = document.getElementById('dupWrap');
+  if (data.count === 0) { wrap.innerHTML = '<div class="empty">No duplicates or equivalents found.</div>'; return; }
+  wrap.innerHTML = `<table><thead><tr><th>Category</th><th>Pair</th><th>CPSEs</th><th>Decision</th><th>Score</th></tr></thead>
+    <tbody>${data.results.map(r => `<tr>
+      <td>${esc(r.category)}</td>
+      <td>${esc(r.descriptions[0])} <span style="color:var(--slate);">vs</span> ${esc(r.descriptions[1])}</td>
+      <td class="mono">${esc(r.cpse_pair[0])} / ${esc(r.cpse_pair[1])}</td>
+      <td><span class="badge ${DECISION_BADGE[r.decision]||''}">${esc(r.decision)}</span></td>
+      <td class="mono">${r.combined_score.toFixed(2)}</td>
+    </tr>`).join('')}</tbody></table><p class="note">${data.count} confirmed pair(s).</p>`;
+};
+
+// ============================================================
+// ONECODE MASTER
+// ============================================================
+TAB_RENDERERS['onecode-master'] = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Central master table of every harmonized material identity';
+  content.innerHTML = `<div class="card"><div id="ocmWrap" class="loading">Loading…</div></div>`;
+  const data = await api('/onecode-master');
+  const wrap = document.getElementById('ocmWrap');
+  wrap.innerHTML = `<table><thead><tr><th>OneCode</th><th>Category</th><th>Standard Specification</th><th>CPSE Count</th><th></th></tr></thead>
+    <tbody>${data.onecode_master.map(r => `<tr>
+      <td class="mono">${esc(r.onecode)}</td><td>${esc(r.category)}</td><td>${esc(r.standard_specification)}</td>
+      <td class="mono">${r.cpse_count}</td>
+      <td><button class="small secondary" onclick="openMaterial360('${esc(r.onecode)}')">View 360°</button></td>
+    </tr>`).join('')}</tbody></table><p class="note">${data.count} OneCode(s) generated.</p>`;
+};
+</script>
+
+<script>
+// ============================================================
+// CODE LOOKUP (key demonstration feature)
+// ============================================================
+TAB_RENDERERS.lookup = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Find a material across CPSEs using an existing material code or OneCode';
+  const cpses = await api('/config/cpses');
+  content.innerHTML = `
+    <div class="grid-2" style="margin-bottom:16px;">
+      <div class="card">
+        <p class="section-title">Search by material code</p>
+        <div class="field-group" style="margin-bottom:10px;">
+          <label>Select CPSE</label>
+          <select id="lkCpse">${cpses.cpses.map(c=>`<option value="${c}">${c}</option>`).join('')}<option value="Other">Other / Custom</option></select>
+        </div>
+        <div class="field-group" style="margin-bottom:12px;">
+          <label>Enter existing CPSE material code</label>
+          <input type="text" id="lkCode" placeholder="e.g. ONGC-1001">
+        </div>
+        <button id="lkGo">Find Material</button>
+      </div>
+      <div class="card">
+        <p class="section-title">Search by OneCode</p>
+        <div class="field-group" style="margin-bottom:12px;">
+          <label>Enter OneCode</label>
+          <input type="text" id="ocCode" placeholder="e.g. OC-BRG-12808D">
+        </div>
+        <button id="ocGo">Find All Mappings</button>
+      </div>
+    </div>
+    <div id="lookupResult"></div>
+  `;
+
+  document.getElementById('lkGo').addEventListener('click', async () => {
+    const cpse = document.getElementById('lkCpse').value;
+    const code = document.getElementById('lkCode').value.trim();
+    const resultBox = document.getElementById('lookupResult');
+    if (!code) { resultBox.innerHTML = '<div class="error-box">Enter a material code.</div>'; return; }
+    resultBox.innerHTML = '<div class="loading">Searching…</div>';
+    try {
+      const data = await api(`/lookup/material?cpse=${encodeURIComponent(cpse)}&code=${encodeURIComponent(code)}`);
+      renderMaterialFound(resultBox, data);
+    } catch (e) {
+      resultBox.innerHTML = `<div class="error-box">${esc(e.message)}</div>`;
+    }
+  });
+
+  document.getElementById('ocGo').addEventListener('click', async () => {
+    const code = document.getElementById('ocCode').value.trim();
+    const resultBox = document.getElementById('lookupResult');
+    if (!code) { resultBox.innerHTML = '<div class="error-box">Enter a OneCode.</div>'; return; }
+    resultBox.innerHTML = '<div class="loading">Searching…</div>';
+    try {
+      const data = await api(`/lookup/onecode?code=${encodeURIComponent(code)}`);
+      renderReverseLookup(resultBox, data);
+    } catch (e) {
+      resultBox.innerHTML = `<div class="error-box">${esc(e.message)}</div>`;
+    }
+  });
+};
+
+function renderMaterialFound(box, data){
+  const m = data.material_found;
+  box.innerHTML = `
+    <div class="card" style="margin-bottom:14px;">
+      <p class="section-title">Material Found</p>
+      <div class="grid-2">
+        <div>
+          <p><b>CPSE:</b> ${esc(m.cpse)}</p>
+          <p><b>Existing Material Code:</b> <span class="mono">${esc(m.existing_material_code)}</span></p>
+          <p><b>Description:</b> ${esc(m.description)}</p>
+          <p><b>Category:</b> ${esc(m.category)}</p>
+        </div>
+        <div>
+          <p><b>Standard Specification:</b><br>${esc(m.standard_specification)}</p>
+          <p><b>Match Type:</b> <span class="badge ${DECISION_BADGE[m.match_type]||''}">${esc(m.match_type)}</span></p>
+          <p><b>Confidence:</b> ${m.confidence}%</p>
+        </div>
+      </div>
+      <div class="onecode-hero">
+        <div><div class="oc-lbl">ONECODE</div><div class="oc">${esc(m.onecode)}</div></div>
+        <div class="oc-count">${data.cpse_codes_mapped} CPSE code(s) mapped</div>
+        <button class="secondary" onclick="openMaterial360('${esc(m.onecode)}')">View Material 360°</button>
+      </div>
+    </div>
+    <div class="card">
+      <p class="section-title">Same Material Across CPSEs</p>
+      <table><thead><tr><th>CPSE</th><th>Existing Material Code</th><th>Description</th><th>OneCode</th><th>Match</th></tr></thead>
+        <tbody>${data.same_material_across_cpses.map(r => `<tr>
+          <td>${esc(r.cpse)}</td><td class="mono">${esc(r.existing_material_code)}</td><td>${esc(r.description)}</td>
+          <td class="mono">${esc(r.onecode)}</td><td><span class="badge ${DECISION_BADGE[r.match]||'badge-duplicate'}">${esc(r.match)}</span></td>
+        </tr>`).join('')}</tbody></table>
+    </div>
+  `;
+}
+
+function renderReverseLookup(box, data){
+  box.innerHTML = `
+    <div class="card">
+      <p class="section-title">OneCode Mapping</p>
+      <div class="onecode-hero">
+        <div><div class="oc-lbl">ONECODE</div><div class="oc">${esc(data.onecode)}</div></div>
+        <div class="oc-count">${data.mapped_cpse_materials} CPSE material(s) mapped</div>
+        <button class="secondary" onclick="openMaterial360('${esc(data.onecode)}')">View Material 360°</button>
+      </div>
+      <p><b>Standard Specification:</b> ${esc(data.standard_specification)}</p>
+      <table><thead><tr><th>CPSE</th><th>Material Code</th></tr></thead>
+        <tbody>${data.mappings.map(m => `<tr><td>${esc(m.cpse)}</td><td class="mono">${esc(m.material_code)}</td></tr>`).join('')}</tbody></table>
+    </div>
+  `;
+}
+
+// ============================================================
+// MATERIAL 360 (modal, reachable from Code Lookup / OneCode Master)
+// ============================================================
+async function openMaterial360(onecode){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `<div class="modal-overlay" id="m360overlay"><div class="modal"><div class="loading">Loading Material 360°…</div></div></div>`;
+  document.getElementById('m360overlay').addEventListener('click', (e) => { if (e.target.id === 'm360overlay') root.innerHTML = ''; });
+  try {
+    const d = await api(`/material360/${encodeURIComponent(onecode)}`);
+    const modal = document.querySelector('#m360overlay .modal');
+    modal.innerHTML = `
+      <span class="modal-close" onclick="document.getElementById('modalRoot').innerHTML=''">&times;</span>
+      <p class="section-title">Identity</p>
+      <p><b>OneCode:</b> <span class="mono">${esc(d.identity.onecode)}</span> &nbsp; <b>Category:</b> ${esc(d.identity.category)}</p>
+      <p><b>Standard Specification:</b> ${esc(d.identity.standard_specification)}</p>
+
+      <p class="section-title">CPSE Codes</p>
+      <table><thead><tr><th>CPSE</th><th>Material Code</th><th>Source</th></tr></thead>
+        <tbody>${d.cpse_codes.map(c=>`<tr><td>${esc(c.cpse)}</td><td class="mono">${esc(c.material_code)}</td><td style="font-size:11.5px;color:var(--slate);">${esc(c.source)}</td></tr>`).join('')}</tbody></table>
+
+      <p class="section-title">Technical Attributes</p>
+      <div class="grid-3">${Object.entries(d.technical_attributes).filter(([k,v])=>v).map(([k,v])=>`<div><div style="font-size:10.5px;color:var(--slate);text-transform:uppercase;">${esc(k.replace(/_/g,' '))}</div><div>${esc(v)}</div></div>`).join('')}</div>
+
+      <p class="section-title">AI Decision</p>
+      <p><b>Match Type:</b> ${d.ai_decision.match_type ? `<span class="badge ${DECISION_BADGE[d.ai_decision.match_type]||''}">${esc(d.ai_decision.match_type)}</span>` : '—'} ${d.ai_decision.confidence!=null ? `&nbsp; <b>Confidence:</b> ${d.ai_decision.confidence}%` : ''}</p>
+      ${d.ai_decision.evidence_table && d.ai_decision.evidence_table.length ? `<table><thead><tr><th>Feature</th><th>Result</th></tr></thead><tbody>${d.ai_decision.evidence_table.map(e=>`<tr><td>${esc(e.feature)}</td><td>${esc(e.result)}</td></tr>`).join('')}</tbody></table>` : '<p class="note">No pairwise comparison recorded for this single-record OneCode yet.</p>'}
+
+      <p class="section-title">Procurement Intelligence</p>
+      <p><b>Total Aggregated Demand:</b> ${d.procurement_intelligence.total_aggregated_demand} &nbsp;
+         <b>CPSEs Using Material:</b> ${d.procurement_intelligence.number_of_cpses}</p>
+      ${d.procurement_intelligence.price_range ? `<p><b>Price Range:</b> ₹${d.procurement_intelligence.price_range[0]} – ₹${d.procurement_intelligence.price_range[1]} <span class="demo-tag">ILLUSTRATIVE DEMO ESTIMATE</span></p>` : ''}
+
+      <p class="section-title">Audit</p>
+      <p><b>Approval Status:</b> ${esc(d.audit.approval_status)} &nbsp; <b>Created:</b> ${esc((d.audit.created||'').split('T')[0])}</p>
+    `;
+  } catch (e) {
+    document.querySelector('#m360overlay .modal').innerHTML = `<span class="modal-close" onclick="document.getElementById('modalRoot').innerHTML=''">&times;</span><div class="error-box">${esc(e.message)}</div>`;
+  }
+}
+</script>
+
+<script>
+// ============================================================
+// OVERVIEW
+// ============================================================
+TAB_RENDERERS.overview = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'National Material Intelligence';
+  const o = await api('/overview');
+  content.innerHTML = `
+    <div class="grid-4" style="margin-bottom:20px;">
+      <div class="stat"><div class="num">${o.total_material_records}</div><div class="lbl">Total material records</div></div>
+      <div class="stat warn"><div class="num">${o.potential_duplicates}</div><div class="lbl">Potential duplicates</div></div>
+      <div class="stat good"><div class="num">${o.equivalent_materials}</div><div class="lbl">Equivalent materials</div></div>
+      <div class="stat"><div class="num">${o.similar_materials}</div><div class="lbl">Similar (needs review)</div></div>
+      <div class="stat good"><div class="num">${o.unique_harmonized_materials}</div><div class="lbl">Unique harmonized materials</div></div>
+      <div class="stat"><div class="num">${o.onecodes_generated}</div><div class="lbl">OneCodes generated</div></div>
+      <div class="stat warn"><div class="num">${o.records_requiring_review}</div><div class="lbl">Records requiring review</div></div>
+      <div class="stat good"><div class="num">${o.potential_procurement_opportunities}</div><div class="lbl">Procurement opportunities</div></div>
+    </div>
+    <div class="card">
+      <p class="section-title">Concept</p>
+      <p style="font-size:14px; line-height:1.6; margin:0;">Different CPSE Codes → One Standard Specification → <b>OneCode</b>.
+      This dashboard is running against <b>${esc(o.current_data_source)}</b> ${o.current_data_source.toLowerCase().includes('demo') ? '<span class="demo-tag">SAMPLE / SYNTHETIC DATA</span>' : ''} using <span class="mono">${esc(o.semantic_method)}</span> for semantic similarity.</p>
+    </div>
+  `;
+};
+
+// ============================================================
+// MATERIAL EXPLORER
+// ============================================================
+TAB_RENDERERS.explorer = async (content) => {
+  document.getElementById('pageSubtitle').textContent = 'Browse all ingested material records';
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <div class="flex-row">
+        <div class="field-group"><label>Search</label><input type="search" id="expQ" placeholder="description or code…"></div>
+        <div class="field-group"><label>CPSE</label><select id="expCpse"><option value="">All</option></select></div>
+        <div class="field-group"><label>Category</label><select id="expCat"><option value="">All</option></select></div>
+        <div class="field-group"><label>&nbsp;</label><button id="expGo">Filter</button></div>
+      </div>
+    </div>
+    <div class="card"><div id="expTableWrap" class="loading">Loading…</div></div>
+  `;
+  const [cpses, cats] = await Promise.all([api('/config/cpses'), api('/config/categories')]);
+  const cpseSel = document.getElementById('expCpse');
+  cpses.cpses.forEach(c => cpseSel.appendChild(el(`<option value="${c}">${c}</option>`)));
+  const catSel = document.getElementById('expCat');
+  Object.keys(cats.categories).forEach(c => catSel.appendChild(el(`<option value="${c}">${c}</option>`)));
+
+  async function loadTable(){
+    const q = document.getElementById('expQ').value;
+    const cpse = document.getElementById('expCpse').value;
+    const category = document.getElementById('expCat').value;
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (cpse) params.set('cpse', cpse);
+    if (category) params.set('category', category);
+    const data = await api('/materials?' + params.toString());
+    const wrap = document.getElementById('expTableWrap');
+    if (data.count === 0) { wrap.innerHTML = '<div class="empty">No materials match this filter.</div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>CPSE</th><th>Code</th><th>Description</th><th>Category</th><th>OneCode</th><th>Source</th></tr></thead>
+      <tbody>${data.materials.map(m => `<tr>
+        <td>${esc(m.cpse_id)}</td><td class="mono">${esc(m.material_code)}</td><td>${esc(m.raw_description)}</td>
+        <td>${esc(m.category)}</td><td class="mono">${esc(m.onecode || '—')}</td><td style="font-size:11.5px;color:var(--slate);">${esc(m.source||'')}</td>
+      </tr>`).join('')}</tbody></table><p class="note">${data.count} record(s).</p>`;
+  }
+  document.getElementById('expGo').addEventListener('click', loadTable);
+  document.getElementById('expQ').addEventListener('keydown', e => { if (e.key === 'Enter') loadTable(); });
+  loadTable();
+};
+</script>
+
+</body>
+</html>

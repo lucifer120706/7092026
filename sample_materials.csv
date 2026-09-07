@@ -1,0 +1,25 @@
+cpse_id,material_code,raw_description,category,material,dimension_1,unit,standard,grade,pressure_rating,voltage_rating,manufacturer,manufacturer_part_number,unit_price,quantity_procured,source,true_cluster
+ONGC,ONGC-1001,SKF BRG 6205 2RS,Bearing,Steel,6205,model,ISO 15,N/A,,,SKF,6205-2RS,420,200,Demo CSV,B1
+CPCL,CPCL-1001,6205 2RS Deep Groove Bearing,Bearing,Steel,6205,model,ISO 15,N/A,,,,,445,150,Demo CSV,B1
+GAIL,GAIL-1001,Bearing 6205-2RS,Bearing,Steel,6205,model,ISO 15,N/A,,,,,410,300,Demo CSV,B1
+IOCL,IOCL-1001,DGBB 6205 2RS,Bearing,Steel,6205,model,ISO 15,N/A,,,,,400,180,Demo CSV,B1
+BPCL,BPCL-1001,FAG Bearing 6205 2RS,Bearing,Steel,6205,model,ISO 15,N/A,,,FAG,,460,100,Demo CSV,B2_equiv
+HPCL,HPCL-1001,NSK BRG DGBB 6205-2RS,Bearing,Steel,6205,model,ISO 15,N/A,,,NSK,,455,120,Demo CSV,B2_equiv
+NTPC,NTPC-1001,SKF BRG 6205 open type,Bearing,Steel,6205,model,ISO 15,N/A,,,SKF,,390,80,Demo CSV,B3_family
+SAIL,SAIL-1001,Bearing 6205 - spec not confirmed,Bearing,,6205,model,,,,,,,400,50,Demo CSV,B_insufficient
+ONGC,ONGC-1002,HEX BLT M12X50 SS304 DIN933 GR8.8,Fastener,SS304,12x50,mm,DIN933,8.8,,,,,12,5000,Demo CSV,F1
+CPCL,CPCL-1002,Bolt Hexagonal M12 x 50mm Stainless 304 DIN 933 Grade 8.8,Fastener,SS304,12x50,mm,DIN933,8.8,,,,,14,3000,Demo CSV,F1
+GAIL,GAIL-1002,BOLT HEX M12*50 SS304 DIN933 8.8,Fastener,SS304,12x50,mm,DIN933,8.8,,,,,13,4200,Demo CSV,F1
+BHEL,BHEL-1001,HEX BOLT M12x50 SS304 DIN933 GR10.9,Fastener,SS304,12x50,mm,DIN933,10.9,,,,,16,1000,Demo CSV,F2_conflict
+IOCL,IOCL-1002,Hex Bolt 0.5in x 2in SS304 DIN933 Grade 8.8,Fastener,SS304,12.7x50.8,inch,DIN933,8.8,,,,,15,1800,Demo CSV,F3_unit
+ONGC,ONGC-1003,SS PIPE 50MM ASTM A312 TP304L,Pipe,Stainless Steel,50,mm,ASTM A312,TP304L,Sch40,,,,850,600,Demo CSV,P1
+CPCL,CPCL-1003,Stainless Steel Pipe 50mm ASTM A312 Grade TP304L Sch40,Pipe,Stainless Steel,50,mm,ASTM A312,TP304L,Sch40,,,,880,400,Demo CSV,P1
+SAIL,SAIL-1002,SS Pipe 50mm ASTM A312 TP304L Sch80,Pipe,Stainless Steel,50,mm,ASTM A312,TP304L,Sch80,,,,1100,250,Demo CSV,P2_conflict
+NTPC,NTPC-1002,SS Pipe 50mm A312 TP304L Sch40 threaded end,Pipe,Stainless Steel,50,mm,ASTM A312,TP304L,Sch40,,,,900,150,Demo CSV,P3_family
+BPCL,BPCL-1002,Pipe 50mm - material grade TBD,Pipe,,50,mm,,,,,,,800,100,Demo CSV,P_insufficient
+ONGC,ONGC-1004,GATE VALVE 100MM CLASS150 CS BODY,Valve,Carbon Steel,100,mm,API600,N/A,150#,,,,4200,40,Demo CSV,V1
+CPCL,CPCL-1004,Gate Valve 100mm Class 150 Carbon Steel Body API 600,Valve,Carbon Steel,100,mm,API600,N/A,150#,,,,4350,30,Demo CSV,V1
+HPCL,HPCL-1002,Gate Valve 100mm Class300 CS Body API600,Valve,Carbon Steel,100,mm,API600,N/A,300#,,,,5800,20,Demo CSV,V2_conflict
+SAIL,SAIL-1003,XLPE CABLE 3C 95SQMM 11KV,Cable,Copper,95,sqmm,IS7098,N/A,,11kV,,,680,2000,Demo CSV,C1
+GAIL,GAIL-1003,XLPE Cable 3 Core 95 sq mm 11 kV IS 7098,Cable,Copper,95,sqmm,IS7098,N/A,,11kV,,,705,1500,Demo CSV,C1
+ONGC,ONGC-1005,XLPE Cable 3C 95sqmm 33kV IS7098,Cable,Copper,95,sqmm,IS7098,N/A,,33kV,,,980,800,Demo CSV,C2_conflict
